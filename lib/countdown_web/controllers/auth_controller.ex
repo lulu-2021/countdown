@@ -4,22 +4,19 @@ defmodule CountdownWeb.AuthController do
 
   plug Ueberauth
 
+  alias Countdown.UserFromAuth
   alias Ueberauth.Strategy.Helpers
 
   def request(conn, _params) do
-    IO.puts("\nAUTH REQUEST\n")
-
     render(conn, "request.html", callback_url: Helpers.callback_url(conn))
   end
 
   def logout(conn, _params) do
-    # UserFromAuth.force_logout()
     redirect_url = UserFromAuth.logout_redirect_url()
 
     conn
     |> put_flash(:info, "You have been logged out!")
     |> configure_session(drop: true)
-    # |> redirect(to: "/")
     |> redirect(external: redirect_url)
   end
 

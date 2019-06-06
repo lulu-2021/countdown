@@ -17,3 +17,6 @@ config :countdown, Countdown.Repo,
   database: {:system, :string, "DB_ENV_TEST_NAME"},
   hostname: {:system, :string, "DB_ENV_POSTGRES_HOST"},
   pool: Ecto.Adapters.SQL.Sandbox
+
+config :countdown,
+  auth0_return_to_url: {:system, :string, "AUTH0_RETURN_TO_URL", "lvh.me:4000"},

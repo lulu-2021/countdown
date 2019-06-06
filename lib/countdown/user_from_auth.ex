@@ -1,4 +1,4 @@
-defmodule UserFromAuth do
+defmodule Countdown.UserFromAuth do
   @moduledoc """
   Retrieve the user information from an auth request
   """
@@ -6,6 +6,7 @@ defmodule UserFromAuth do
   require Poison
 
   alias Ueberauth.Auth
+  alias Countdown.Utils.ConfigUtils
 
   def find_or_create(%Auth{provider: :identity} = auth) do
     print_auth_details(auth, :identity_provider)
@@ -24,23 +25,19 @@ defmodule UserFromAuth do
     {:ok, basic_info(auth)}
   end
 
+  def logout_redirect_url do
+    params = %{"client_id" => auth_client_id(), "returnTo" => return_to_url()}
+    encoded_params = URI.encode_query(params)
+    "https://#{auth_domain()}/v2/logout?#{encoded_params}"
+  end
+
   def force_logout do
     logout_response = HTTPoison.get!(logout_redirect_url())
-
-    IO.puts("\n Auth0 logout response: \n")
-    IO.inspect(logout_response)
-    IO.puts("\n DONE \n")
 
     case logout_response.status_code do
       302 -> {:ok, "successfully logged out"}
       status -> {:error, status, "logout failed!"}
     end
-  end
-
-  def logout_redirect_url do
-    params = %{"client_id" => auth_client_id(), "returnTo" => return_to_url()}
-    encoded_params = URI.encode_query(params)
-    "https://#{auth_domain()}/v2/logout?#{encoded_params}"
   end
 
   # github does it this way
@@ -89,7 +86,7 @@ defmodule UserFromAuth do
 
   defp validate_pass(_), do: {:error, "Password Required"}
 
-  defp return_to_url, do: "http://lvh.me:4000"
+  defp return_to_url, do: ConfigUtils.return_to_url()
 
   defp auth_domain, do: auth_configs()[:domain]
   defp auth_client_id, do: auth_configs()[:client_id]
