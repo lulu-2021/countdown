@@ -19,4 +19,4 @@ config :countdown, Countdown.Repo,
   pool: Ecto.Adapters.SQL.Sandbox
 
 config :countdown,
-  auth0_return_to_url: {:system, :string, "AUTH0_RETURN_TO_URL", "lvh.me:4000"},
+  auth0_return_to_url: {:system, :string, "AUTH0_RETURN_TO_URL", "lvh.me:4000"}

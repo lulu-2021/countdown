@@ -81,4 +81,4 @@ config :countdown, Countdown.Repo,
   pool_size: 15
 
 config :countdown,
-  auth0_return_to_url: {:system, :string, "AUTH0_RETURN_TO_URL"},
+  auth0_return_to_url: {:system, :string, "AUTH0_RETURN_TO_URL"}
