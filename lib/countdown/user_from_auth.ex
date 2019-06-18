@@ -6,14 +6,16 @@ defmodule Countdown.UserFromAuth do
   require Poison
 
   alias Ueberauth.Auth
-  alias Countdown.Utils.ConfigUtils
+  alias Countdown.{Utils.ConfigUtils, UserRepo}
 
   def find_or_create(%Auth{provider: :identity} = auth) do
     print_auth_details(auth, :identity_provider)
 
     case validate_pass(auth.credentials) do
       :ok ->
-        {:ok, basic_info(auth)}
+        user_info = basic_info(auth)
+        register_user(user_info)
+        {:ok, user_info}
 
       {:error, reason} ->
         {:error, reason}
@@ -22,7 +24,19 @@ defmodule Countdown.UserFromAuth do
 
   def find_or_create(%Auth{} = auth) do
     print_auth_details(auth, :basic)
-    {:ok, basic_info(auth)}
+    user_info = basic_info(auth)
+    register_user(user_info)
+    {:ok, user_info}
+  end
+
+  defp register_user(user_info) do
+    user_attrs = %{
+      auth0_id: user_info.id,
+      email: user_info.email
+    }
+
+    {:ok, model, message} = UserRepo.register_user(user_attrs)
+    print_register_details(model, message)
   end
 
   def logout_redirect_url do
@@ -54,7 +68,20 @@ defmodule Countdown.UserFromAuth do
   end
 
   defp basic_info(auth) do
-    %{id: auth.uid, name: name_from_auth(auth), avatar: avatar_from_auth(auth)}
+    %{
+      id: auth.uid,
+      email: email_from_auth(auth),
+      name: name_from_auth(auth),
+      avatar: avatar_from_auth(auth)
+    }
+  end
+
+  defp email_from_auth(auth) do
+    if auth.info.email do
+      auth.info.email
+    else
+      nil
+    end
   end
 
   defp name_from_auth(auth) do
@@ -96,6 +123,12 @@ defmodule Countdown.UserFromAuth do
   defp print_auth_details(auth, method) do
     Logger.info("\n User Auth (with #{method}): \n")
     Logger.info(inspect(auth))
+    Logger.info("\n done \n")
+  end
+
+  defp print_register_details(model, message) do
+    Logger.info("\n user info: #{message}\n")
+    Logger.info("\n current user id: #{inspect(model.id)}")
     Logger.info("\n done \n")
   end
 end
