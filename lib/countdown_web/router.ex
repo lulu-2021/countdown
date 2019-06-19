@@ -15,13 +15,22 @@ defmodule CountdownWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :secure_auth do
+    plug(CountdownWeb.Plugs.AuthZeroSecure)
+  end
+
   scope "/", CountdownWeb do
     pipe_through :browser
 
     get "/", PageController, :index
-    resources "/events", EventController
 
     get "/logout", AuthController, :logout
+  end
+
+  scope "/", CountdownWeb do
+    pipe_through [:browser, :secure_auth]
+
+    resources "/events", EventController
   end
 
   scope "/auth", CountdownWeb do
